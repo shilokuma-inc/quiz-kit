@@ -19,6 +19,8 @@ import Foundation
 public struct ChoiceQuestionGenerator<Item: Sendable, Prompt: Hashable & Sendable, Answer: Hashable & Sendable>: Sendable {
     /// 出題に使うデータ
     public let items: [Item]
+    /// 誤答を選ぶデータ。`items` より広くしておくと、「出す問題は難しい行だけ、誤答は全件から」のような出題ができる
+    public let distractorPool: [Item]
     /// 選択肢の数（2 択なら 2）。正解を含む
     public let choiceCount: Int
     private let prompt: @Sendable (Item) -> Prompt
@@ -31,6 +33,7 @@ public struct ChoiceQuestionGenerator<Item: Sendable, Prompt: Hashable & Sendabl
 
     /// - Parameters:
     ///   - items: 出題に使うデータ。答えが同じ行が複数あってもよい（誤答には答えが異なる行だけを使う）
+    ///   - distractorPool: 誤答を選ぶデータ。nil なら `items` から選ぶ
     ///   - choiceCount: 選択肢の数。答えの種類がこれより少ないときは、ある分だけ並べる
     ///   - prompt: 問題として見せる値
     ///   - answer: 正解の値（選択肢に並ぶ値）
@@ -39,6 +42,7 @@ public struct ChoiceQuestionGenerator<Item: Sendable, Prompt: Hashable & Sendabl
     ///   - recentWindow: 直近に出した問題を避ける数
     public init(
         items: [Item],
+        distractorPool: [Item]? = nil,
         choiceCount: Int,
         prompt: @escaping @Sendable (Item) -> Prompt,
         answer: @escaping @Sendable (Item) -> Answer,
@@ -48,6 +52,7 @@ public struct ChoiceQuestionGenerator<Item: Sendable, Prompt: Hashable & Sendabl
     ) {
         precondition(choiceCount >= 2, "選択肢は 2 つ以上")
         self.items = items
+        self.distractorPool = distractorPool ?? items
         self.choiceCount = choiceCount
         self.prompt = prompt
         self.answer = answer
@@ -106,7 +111,7 @@ public struct ChoiceQuestionGenerator<Item: Sendable, Prompt: Hashable & Sendabl
         for item: Item,
         using generator: inout Generator
     ) -> [Item] {
-        let shuffled = items.shuffled(using: &generator)
+        let shuffled = distractorPool.shuffled(using: &generator)
         guard let distractorGroup else { return shuffled }
         let group = distractorGroup(item)
         let sameGroup = shuffled.filter { distractorGroup($0) == group }

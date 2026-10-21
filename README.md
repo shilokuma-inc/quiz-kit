@@ -96,6 +96,8 @@ struct PrefectureQuizView: View {
 | データセットから作る（国旗・都道府県・単語など） | `ChoiceQuestion` + `ChoiceQuestionGenerator` |
 | 計算やルールで作る（素数・計算問題など） | 自分の型を `QuizQuestion` に適合させる（prime-pick の `QuizEntity`） |
 
+「むずかしいでは一部の行だけを出し、誤答は全件から選ぶ」ときは、`ChoiceQuestionGenerator(items: 出す行, distractorPool: 全件, …)` のように、誤答を選ぶデータを別に渡します。
+
 ### 進め方（`QuizRules`）
 
 「練習」「タイムアタック」のようなモードは、名前も数もアプリごとに違います。そのため Kit はモードを持ちません。アプリはモードから `QuizRules` を作って `QuizSession` に渡します。

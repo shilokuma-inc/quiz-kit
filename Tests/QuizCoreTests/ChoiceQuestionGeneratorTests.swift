@@ -69,4 +69,25 @@ struct ChoiceQuestionGeneratorTests {
         var rng = SeededRandomNumberGenerator(seed: 4)
         #expect(generator.makeQuestion(for: items[0], using: &rng).choices == ["X"])
     }
+
+    @Test("出す問題を絞っても誤答は全件から選ぶ") func distractorsFromWiderPool() {
+        let hard = prefectures.filter { $0.name != $0.capital.replacingOccurrences(of: "市", with: "県") }
+        var generator = ChoiceQuestionGenerator(
+            items: hard,
+            distractorPool: prefectures,
+            choiceCount: 4,
+            prompt: { $0.name },
+            answer: { $0.capital }
+        )
+        var rng = SeededRandomNumberGenerator(seed: 5)
+        let questions = generator.makeQuestions(count: 30, using: &rng)
+        let hardNames = Set(hard.map(\.name))
+        #expect(questions.allSatisfy { hardNames.contains($0.prompt) })
+        #expect(questions.allSatisfy { $0.choices.count == 4 })
+        // 絞った行（6 件）だけでは足りない誤答も、全件から選べる
+        let allCapitals = Set(prefectures.map(\.capital))
+        let usedCapitals = Set(questions.flatMap(\.choices))
+        #expect(usedCapitals.isSubset(of: allCapitals))
+        #expect(!usedCapitals.isSubset(of: Set(hard.map(\.capital))))
+    }
 }
