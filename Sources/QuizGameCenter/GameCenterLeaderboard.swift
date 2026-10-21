@@ -24,7 +24,9 @@ public final class GameCenterLeaderboard: ObservableObject {
     ///
     /// 起動直後ではなく、最初の画面が出てから呼ぶ。
     #if canImport(UIKit)
-    public func authenticate(presentAuthentication: @escaping @MainActor (UIViewController) -> Void = GameCenterLeaderboard.presentOnKeyWindow) {
+    public func authenticate(
+        presentAuthentication: @escaping @MainActor (UIViewController) -> Void = GameCenterLeaderboard.presentOnKeyWindow
+    ) {
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, _ in
             MainActor.assumeIsolated {
                 if let viewController {

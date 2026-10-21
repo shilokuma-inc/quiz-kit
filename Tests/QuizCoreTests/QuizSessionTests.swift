@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import QuizCore
+import Testing
 
 /// 時刻と予約を手で進める `QuizScheduler`
 @MainActor
@@ -62,7 +62,7 @@ struct QuizSessionTests {
         (1...count).map { TwoChoiceQuestion(id: $0, answer: $0.isMultiple(of: 2)) }
     }
 
-    @Test func 全問に答えると終わる() {
+    @Test("全問に答えると終わる") func finishesAfterAnsweringAll() {
         let scheduler = ManualScheduler()
         let session = QuizSession(questions: questions(3), scheduler: scheduler)
         var events: [String] = []
@@ -86,7 +86,7 @@ struct QuizSessionTests {
         #expect(session.answer(true) == nil)
     }
 
-    @Test func 解答時間は問題が出てから測る() {
+    @Test("解答時間は問題が出てから測る") func measuresElapsedFromQuestionShown() {
         let scheduler = ManualScheduler()
         let session = QuizSession(questions: questions(2), scheduler: scheduler)
         session.start()
@@ -97,7 +97,7 @@ struct QuizSessionTests {
         #expect(session.answer(true)?.elapsedSeconds == 1)
     }
 
-    @Test func 待ち時間の間は次の問題に進まず受け付けない() {
+    @Test("待ち時間の間は次の問題に進まず受け付けない") func waitsBeforeAdvancing() {
         let scheduler = ManualScheduler()
         var rules = QuizRules.practice
         rules.advanceDelay = 1.5
@@ -116,7 +116,7 @@ struct QuizSessionTests {
         #expect(session.answer(true)?.elapsedSeconds == 0.5)
     }
 
-    @Test func 待ち時間のあいだにやめても全問答えていれば解き終えた扱い() {
+    @Test("待ち時間のあいだにやめても全問答えていれば解き終えた扱い") func quitAfterAnsweringAllCompletes() {
         let scheduler = ManualScheduler()
         var rules = QuizRules.practice
         rules.advanceDelay = 1.5
@@ -126,14 +126,14 @@ struct QuizSessionTests {
         #expect(session.finishReason == .completed)
     }
 
-    @Test func 途中でやめる() {
+    @Test("途中でやめる") func quitMidway() {
         let session = QuizSession(questions: questions(3), scheduler: ManualScheduler())
         session.answer(false)
         session.quit()
         #expect(session.finishReason == .quit)
     }
 
-    @Test func タイムアタックは時間切れで終わる() {
+    @Test("タイムアタックは時間切れで終わる") func timeAttackEndsOnTimeUp() {
         let scheduler = ManualScheduler()
         let session = QuizSession(questions: questions(3), rules: .timeAttack(seconds: 3), scheduler: scheduler)
         var ticks: [Int] = []
@@ -153,7 +153,7 @@ struct QuizSessionTests {
         #expect(scheduler.repeatingTimers[0].isCancelled)
     }
 
-    @Test func タイムアタックの誤答は時間を減らし入力を止める() {
+    @Test("タイムアタックの誤答は時間を減らし入力を止める") func timeAttackMissPenalizesAndLocks() {
         let scheduler = ManualScheduler()
         let session = QuizSession(questions: questions(5), rules: .timeAttack(seconds: 30), scheduler: scheduler)
         var penalties: [Int] = []
@@ -174,14 +174,14 @@ struct QuizSessionTests {
         #expect(session.answer(true) != nil)
     }
 
-    @Test func 誤答で残り時間が尽きたらその場で終わる() {
+    @Test("誤答で残り時間が尽きたらその場で終わる") func missPenaltyCanEndPlay() {
         let session = QuizSession(questions: questions(5), rules: .timeAttack(seconds: 2), scheduler: ManualScheduler())
         session.answer(true)
         #expect(session.remainingSeconds == 0)
         #expect(session.finishReason == .timeUp)
     }
 
-    @Test func 残りが少なくなったら補充する() {
+    @Test("残りが少なくなったら補充する") func refillsWhenRunningLow() {
         var refillCount = 0
         let session = QuizSession(
             questions: questions(4),
@@ -199,7 +199,7 @@ struct QuizSessionTests {
         #expect(refillCount == 1)
     }
 
-    @Test func 問題ごとの難易度係数でスコアを計算する() {
+    @Test("問題ごとの難易度係数でスコアを計算する") func scoresWithQuestionFactor() {
         let session = QuizSession(
             questions: [TwoChoiceQuestion(id: 1, answer: true, scoreFactor: 2.0)],
             scheduler: ManualScheduler()
@@ -209,7 +209,7 @@ struct QuizSessionTests {
         #expect(session.score.totalScore == 250)
     }
 
-    @Test func 途中の状態から始める() {
+    @Test("途中の状態から始める") func restoresProgress() {
         let session = QuizSession(questions: questions(4), scheduler: ManualScheduler())
         var notified = false
         session.onEvent = { _ in notified = true }

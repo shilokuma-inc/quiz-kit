@@ -15,10 +15,10 @@ public struct SplitMix64: Sendable {
 
     public mutating func next() -> UInt64 {
         state = state &+ 0x9e37_79b9_7f4a_7c15
-        var z = state
-        z = (z ^ (z >> 30)) &* 0xbf58_476d_1ce4_e5b9
-        z = (z ^ (z >> 27)) &* 0x94d0_49bb_1331_11eb
-        return z ^ (z >> 31)
+        var mixed = state
+        mixed = (mixed ^ (mixed >> 30)) &* 0xbf58_476d_1ce4_e5b9
+        mixed = (mixed ^ (mixed >> 27)) &* 0x94d0_49bb_1331_11eb
+        return mixed ^ (mixed >> 31)
     }
 
     /// `0..<1` の一様な小数。上位 53bit をそのまま `Double` の仮数にする

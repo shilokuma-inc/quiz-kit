@@ -40,7 +40,7 @@ private struct PrefectureQuizView: View {
 
 @MainActor
 struct ReadmeSampleTests {
-    @Test func サンプルの画面を作れる() {
+    @Test("サンプルの画面を作れる") func buildsReadmeSample() {
         let view = PrefectureQuizView(prefectures: [
             Prefecture(name: "青森県", capital: "青森市", region: "東北"),
             Prefecture(name: "岩手県", capital: "盛岡市", region: "東北")

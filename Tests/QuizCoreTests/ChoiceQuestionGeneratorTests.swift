@@ -1,5 +1,5 @@
-import Testing
 @testable import QuizCore
+import Testing
 
 struct Prefecture: Sendable {
     let name: String
@@ -19,8 +19,7 @@ struct ChoiceQuestionGeneratorTests {
         Prefecture(name: "神奈川県", capital: "横浜市", region: "関東")
     ]
 
-    @Test(arguments: [2, 3, 4])
-    func 選択肢の数と正解を含むこと(choiceCount: Int) {
+    @Test("選択肢の数と正解を含むこと", arguments: [2, 3, 4]) func containsChoiceCountAndCorrect(choiceCount: Int) {
         var generator = ChoiceQuestionGenerator(items: prefectures, choiceCount: choiceCount, prompt: \.name, answer: \.capital)
         var rng = SeededRandomNumberGenerator(seed: 1)
         let questions = generator.makeQuestions(count: 20, using: &rng)
@@ -34,14 +33,14 @@ struct ChoiceQuestionGeneratorTests {
         }
     }
 
-    @Test func 一巡するまで同じ問題を出さない() {
+    @Test("一巡するまで同じ問題を出さない") func noRepeatUntilCycle() {
         var generator = ChoiceQuestionGenerator(items: prefectures, choiceCount: 4, prompt: \.name, answer: \.capital)
         var rng = SeededRandomNumberGenerator(seed: 2)
         let prompts = generator.makeQuestions(count: prefectures.count, using: &rng).map(\.prompt)
         #expect(Set(prompts).count == prefectures.count)
     }
 
-    @Test func 同じシードなら同じ出題() {
+    @Test("同じシードなら同じ出題") func sameSeedSameQuestions() {
         var first = ChoiceQuestionGenerator(items: prefectures, choiceCount: 4, prompt: \.name, answer: \.capital)
         var second = first
         var rng1 = SeededRandomNumberGenerator(seed: 42)
@@ -49,7 +48,7 @@ struct ChoiceQuestionGeneratorTests {
         #expect(first.makeQuestions(count: 10, using: &rng1) == second.makeQuestions(count: 10, using: &rng2))
     }
 
-    @Test func 誤答は同じグループから優先して選ぶ() {
+    @Test("誤答は同じグループから優先して選ぶ") func prefersSameGroupDistractors() {
         let generator = ChoiceQuestionGenerator(
             items: prefectures,
             choiceCount: 4,
@@ -64,7 +63,7 @@ struct ChoiceQuestionGeneratorTests {
         #expect(Set(question.choices) == kanto)
     }
 
-    @Test func 答えの種類が足りなければある分だけ並べる() {
+    @Test("答えの種類が足りなければある分だけ並べる") func fewerChoicesWhenAnswersRunOut() {
         let items = [Prefecture(name: "A", capital: "X", region: ""), Prefecture(name: "B", capital: "X", region: "")]
         let generator = ChoiceQuestionGenerator(items: items, choiceCount: 4, prompt: \.name, answer: \.capital)
         var rng = SeededRandomNumberGenerator(seed: 4)

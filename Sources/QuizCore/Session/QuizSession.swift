@@ -230,7 +230,11 @@ public final class QuizSession<Question: QuizQuestion> {
     ///
     /// `answers` の順に解答し直し（スコアも同じ計算で求める）、`remainingSeconds` を設定する。
     /// `isFinished` なら解き終えた状態にする。出来事（`onEvent`）は知らせない。
-    public func restore(answeredChoices: [(Question.Choice, elapsedSeconds: TimeInterval)], remainingSeconds: Int? = nil, isFinished: Bool = false) {
+    public func restore(
+        answeredChoices: [(Question.Choice, elapsedSeconds: TimeInterval)],
+        remainingSeconds: Int? = nil,
+        isFinished: Bool = false
+    ) {
         for (choice, elapsed) in answeredChoices where answers.count < questions.count {
             let question = questions[answers.count]
             let answer = QuizAnswer(

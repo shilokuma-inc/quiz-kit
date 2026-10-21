@@ -22,6 +22,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: SwiftLint
+        # 利用するアプリに Build Tool Plugin を持ち込まないよう、Package には入れずランナーの SwiftLint で検査する
+        run: |
+          command -v swiftlint >/dev/null || brew install swiftlint
+          swiftlint version
+          swiftlint lint --strict --reporter github-actions-logging
+
       - name: Test (macOS)
         run: swift test
 

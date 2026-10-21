@@ -1,9 +1,9 @@
 import Foundation
-import Testing
 @testable import QuizCore
+import Testing
 
 struct ScoreCalculatorTests {
-    @Test func コンボ倍率と速度ボーナス() {
+    @Test("コンボ倍率と速度ボーナス") func comboAndSpeedBonus() {
         var calculator = ScoreCalculator()
         calculator.submit(isCorrect: true, difficultyFactor: 1.5, elapsedTime: 0.5)
         // 150 + 速度 50
@@ -14,7 +14,7 @@ struct ScoreCalculatorTests {
         #expect(calculator.maxCombo == 2)
     }
 
-    @Test func タイムアタックの誤答は減点するが0未満にしない() {
+    @Test("タイムアタックの誤答は減点するが0未満にしない") func timeAttackPenaltyNeverNegative() {
         var calculator = ScoreCalculator(rule: .timeAttack)
         calculator.submit(isCorrect: true, difficultyFactor: 1.0, elapsedTime: 0)
         #expect(calculator.totalScore == 100)
@@ -23,7 +23,7 @@ struct ScoreCalculatorTests {
         #expect(calculator.currentCombo == 0)
     }
 
-    @Test func コンボの段階() {
+    @Test("コンボの段階") func comboStages() {
         #expect(ComboStage(combo: 2) == .normal)
         #expect(ComboStage(combo: 3) == .good)
         #expect(ComboStage(combo: 6) == .great)
@@ -35,7 +35,7 @@ struct ScoreCalculatorTests {
 
 struct SplitMix64Tests {
     /// 参照実装（Vigna の splitmix64.c）と同じ列になること。デイリーの出題を凍結する土台なので、変わったら必ず落とす
-    @Test func 参照実装と同じ列() {
+    @Test("参照実装と同じ列") func matchesReferenceSequence() {
         var generator = SplitMix64(seed: 1_234_567)
         let values = (0..<5).map { _ in generator.next() }
         #expect(values == [
@@ -47,7 +47,7 @@ struct SplitMix64Tests {
         ])
     }
 
-    @Test func 偏りなく範囲内を選ぶ() {
+    @Test("偏りなく範囲内を選ぶ") func picksWithinRange() {
         var generator = SplitMix64(seed: 9)
         for _ in 0..<1000 {
             #expect((0..<7).contains(generator.nextIndex(below: 7)))
@@ -55,7 +55,7 @@ struct SplitMix64Tests {
         #expect(generator.shuffled(Array(0..<10)).sorted() == Array(0..<10))
     }
 
-    @Test func FNV1a() {
+    @Test("FNV1a") func fnv1a() {
         #expect(StableSeed.fnv1a("") == 0xcbf2_9ce4_8422_2325)
         #expect(StableSeed.fnv1a("a") == 0xaf63_dc4c_8601_ec8c)
     }
@@ -69,7 +69,7 @@ struct LocalLeaderboardTests {
         return defaults
     }
 
-    @Test func 上位だけを残し自己ベストの更新を返す() {
+    @Test("上位だけを残し自己ベストの更新を返す") func keepsTopRecords() {
         let defaults = makeDefaults()
         let leaderboard = LocalLeaderboard(maxRecordCount: 3, userDefaults: defaults, now: { Date(timeIntervalSince1970: 100) })
         #expect(!leaderboard.record(score: 0, forKey: "k"))
@@ -83,14 +83,14 @@ struct LocalLeaderboardTests {
         #expect(leaderboard.records(forKey: "other").isEmpty)
     }
 
-    @Test func 保存形式() throws {
+    @Test("保存形式") func storageFormat() throws {
         let defaults = makeDefaults()
         LocalLeaderboard(userDefaults: defaults, now: { Date(timeIntervalSince1970: 100) }).record(score: 7, forKey: "k")
         let data = try #require(defaults.data(forKey: "k"))
-        #expect(String(decoding: data, as: UTF8.self) == #"[{"achievedAt":100,"score":7}]"#)
+        #expect(String(bytes: data, encoding: .utf8) == #"[{"achievedAt":100,"score":7}]"#)
     }
 
-    @Test func 日ごとの記録() {
+    @Test("日ごとの記録") func dayKeyedRecords() {
         struct Record: Codable, Equatable {
             let correct: Int
         }
@@ -104,21 +104,21 @@ struct LocalLeaderboardTests {
 }
 
 struct QuizDayTests {
-    @Test func 日付キーの読み書き() {
+    @Test("日付キーの読み書き") func dayKeyRoundTrip() {
         #expect(QuizDay(dayKey: "2026-10-01") == QuizDay(year: 2026, month: 10, day: 1))
         #expect(QuizDay(dayKey: "2026-02-30") == nil)
         #expect(QuizDay(dayKey: "2026-+1-01") == nil)
         #expect(QuizDay(year: 2026, month: 3, day: 9).dayKey == "2026-03-09")
     }
 
-    @Test func 日数の計算() {
+    @Test("日数の計算") func dayArithmetic() {
         let launch = QuizDay(year: 2026, month: 10, day: 7)
         #expect(launch.dayNumber(since: launch) == 1)
         #expect(QuizDay(year: 2026, month: 11, day: 1).dayNumber(since: launch) == 26)
         #expect(QuizDay(year: 2026, month: 12, day: 31).adding(days: 1) == QuizDay(year: 2027, month: 1, day: 1))
     }
 
-    @Test func ストリーク() {
+    @Test("ストリーク") func streak() {
         let today = QuizDay(year: 2026, month: 10, day: 10)
         let days = [8, 9, 3, 4, 5, 6].map { QuizDay(year: 2026, month: 10, day: $0) }
         let streak = QuizStreak(completedDays: days, today: today)
