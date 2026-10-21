@@ -1,0 +1,33 @@
+# Kit のテスト。ロジック（QuizCore / QuizUI）は macOS の swift test で、iOS 向けのビルドは xcodebuild で確かめる
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          # 利用するアプリの CI と揃える。ランナー側の更新でビルドが変わらないよう固定する
+          xcode-version: '26.6'
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Test (macOS)
+        run: swift test
+
+      - name: Build (iOS)
+        # GameKit の UIKit 部分（QuizGameCenter）を含め、iOS で全 product がビルドできること
+        run: |
+          for scheme in QuizCore QuizUI QuizGameCenter; do
+            xcodebuild build -scheme "$scheme" -destination 'generic/platform=iOS Simulator' -quiet
+          done
